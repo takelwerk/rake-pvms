@@ -5,7 +5,8 @@ require 'rake'
 default_packer_template_dir = 'templates/takelage/parallels'
 
 cmd_pvms_pvm_update = 'vagrant box update ' \
-  '--box %<base_user>s/%<base_repo>s'
+  '--box %<base_user>s/%<base_repo>s ' \
+  '--provider parallels'
 
 cmd_pvms_packer = 'cd packer && ' \
   'mkdir -p images/pvm && ' \
@@ -16,6 +17,18 @@ cmd_pvms_packer = 'cd packer && ' \
   "-var='target_repo=%<target_repo>s' " \
   "-var='target_version=%<target_version>s' " \
   "-var='packer_template_dir=%<packer_template_dir>s' " \
+  '%<packer_template_dir>s'
+
+cmd_pvms_packer_withlegacyssh = 'cd packer && ' \
+  'mkdir -p images/pvm && ' \
+  'packer build ' \
+  "-var='base_user=%<base_user>s' " \
+  "-var='base_repo=%<base_repo>s' " \
+  "-var='target_user=%<target_user>s' " \
+  "-var='target_repo=%<target_repo>s' " \
+  "-var='target_version=%<target_version>s' " \
+  "-var='packer_template_dir=%<packer_template_dir>s' " \
+  "-var='ansible_ssh_legacy=%<ansible_ssh_legacy>s' " \
   '%<packer_template_dir>s'
 
 # rubocop:disable Metrics/BlockLength
@@ -63,6 +76,23 @@ namespace :pvms do
             ansible_playbook: ansible_playbook,
             packer_template_dir: packer_template_dir
           )
+        end
+
+        namespace :build do
+          desc 'Build virtualbox with ansible legacy ssh'
+          task :withlegacyssh do
+            @commands << format(
+              cmd_pvms_packer_withlegacyssh,
+              base_user: base_user,
+              base_repo: base_repo,
+              target_user: target_user,
+              target_repo: target_repo,
+              target_version: target_version,
+              ansible_playbook: ansible_playbook,
+              ansible_ssh_legacy: ansible_ssh_legacy,
+              packer_template_dir: packer_template_dir
+            )
+          end
         end
       end
     end
